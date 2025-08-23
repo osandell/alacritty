@@ -1,0 +1,45 @@
+diff --git a/alacritty/src/event.rs b/alacritty/src/event.rs
+index 0000000..1111111 100644
+--- a/alacritty/src/event.rs
++++ b/alacritty/src/event.rs
+@@ -1,6 +1,33 @@
+ use crate::term::Term;
+ use alacritty_terminal::event::Event;
+
++// --- BEGIN: Windows paste normalization (CRLF -> LF) ---
++#[cfg(windows)]
++fn normalize_line_endings(mut s: String) -> String {
++    // Fast path: only touch when '\r' is present
++    if s.as_bytes().iter().any(|&b| b == b'\r') {
++        // Replace CRLF first, then any remaining lone CR
++        s = s.replace("\r\n", "\n");
++        if s.as_bytes().iter().any(|&b| b == b'\r') {
++            s = s.replace('\r', "\n");
++        }
++    }
++    s
++}
++
+
++#[cfg(not(windows))]
++#[inline]
++fn normalize_line_endings(s: String) -> String {
++    s
++}
++// --- END: Windows paste normalization ---
++
+ impl<T> EventLoop<T>
+ where
+     T: EventListener,
+@@ -1230,6 +1257,7 @@ impl<T> EventLoop<T>
+     /// Paste a text into the terminal.
+     fn paste(&mut self, text: &str, bracketed: bool) {
+-        self.ctx.terminal_event(Event::Paste(text.to_owned()));
+
++        let text = normalize_line_endings(text.to_owned());
+
++        self.ctx.terminal_event(Event::Paste(text));
+
+         if bracketed {
+             self.ctx.terminal_event(Event::PasteBracketed(true));
+
