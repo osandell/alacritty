@@ -949,6 +949,17 @@ impl Display {
             rects.push(visual_bell_rect);
         }
 
+        // Draw thin gray line along the right edge of the window
+        let right_edge_rect = RenderRect::new(
+            size_info.width() - 1.0,  // Position at the very right edge
+            0.,                        // Start from top
+            1.0,                       // 1 pixel wide
+            size_info.height(),        // Full height
+            Rgb::new(92, 82, 74),   // Solarized light blue (base0)
+            1.0,                       // Full opacity
+        );
+        rects.push(right_edge_rect);
+
         // Handle IME positioning and search bar rendering.
         let ime_position = match search_state.regex() {
             Some(regex) => {
