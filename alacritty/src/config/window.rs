@@ -13,6 +13,38 @@ use alacritty_config_derive::{ConfigDeserialize, SerdeReplace};
 use crate::config::LOG_TARGET_CONFIG;
 use crate::config::ui_config::{Delta, Percentage};
 
+/// Padding configuration with support for asymmetric values
+#[derive(ConfigDeserialize, Serialize, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Padding {
+    pub left: u16,
+    pub right: u16,
+    pub top: u16,
+    pub bottom: u16,
+}
+
+impl Default for Padding {
+    fn default() -> Self {
+        Self {
+            left: 0,
+            right: 0,
+            top: 0,
+            bottom: 0,
+        }
+    }
+}
+
+impl Padding {
+    pub fn symmetric(x: u16, y: u16) -> Self {
+        Self {
+            left: x,
+            right: x,
+            top: y,
+            bottom: y,
+        }
+    }
+}
+
+
 /// Default Alacritty name, used for window title and class.
 pub const DEFAULT_NAME: &str = "Alacritty";
 
@@ -55,7 +87,7 @@ pub struct WindowConfig {
     pub resize_increments: bool,
 
     /// Pixel padding.
-    padding: Delta<u16>,
+    padding: Padding,
 
     /// Initial dimensions.
     dimensions: Dimensions,
@@ -120,9 +152,18 @@ impl WindowConfig {
     }
 
     #[inline]
-    pub fn padding(&self, scale_factor: f32) -> (f32, f32) {
-        let padding_x = (f32::from(self.padding.x) * scale_factor).floor();
-        let padding_y = (f32::from(self.padding.y) * scale_factor).floor();
+    pub fn padding(&self, scale_factor: f32) -> (f32, f32, f32, f32) {
+        let padding_left = (f32::from(self.padding.left) * scale_factor).floor();
+        let padding_right = (f32::from(self.padding.right) * scale_factor).floor();
+        let padding_top = (f32::from(self.padding.top) * scale_factor).floor();
+        let padding_bottom = (f32::from(self.padding.bottom) * scale_factor).floor();
+        (padding_left, padding_right, padding_top, padding_bottom)
+    }
+
+    #[inline]
+    pub fn padding_symmetric(&self, scale_factor: f32) -> (f32, f32) {
+        let padding_x = (f32::from(self.padding.left.max(self.padding.right)) * scale_factor).floor();
+        let padding_y = (f32::from(self.padding.top.max(self.padding.bottom)) * scale_factor).floor();
         (padding_x, padding_y)
     }
 

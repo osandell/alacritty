@@ -1,0 +1,6 @@
+[window]
+# Set asymmetric padding with 700px bottom margin
+padding = { left = 0, right = 0, top = 0, bottom = 100 }
+
+# Set to false to preserve exact padding values
+dynamic_padding = false
